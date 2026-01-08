@@ -154,3 +154,4 @@ For this project, **Vercel is recommended** because:
 - ✅ Free SSL certificate
 - ✅ Automatic deployments on git push
 
+
