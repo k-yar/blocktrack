@@ -82,6 +82,9 @@ export const Dashboard: React.FC = () => {
           start = '1970-01-01'; // Very early date
           end = format(new Date(), 'yyyy-MM-dd');
           break;
+        default:
+          start = format(startOfMonth(currentDate), 'yyyy-MM-dd');
+          end = format(endOfMonth(currentDate), 'yyyy-MM-dd');
       }
 
       const [areasRes, blocksRes, targetsRes] = await Promise.all([
@@ -111,7 +114,7 @@ export const Dashboard: React.FC = () => {
   };
 
   const changePeriod = (delta: number) => {
-    setCurrentDate(prev => {
+    setCurrentDate((prev: Date) => {
       switch (viewType) {
         case 'week':
           return delta > 0 ? addWeeks(prev, 1) : subWeeks(prev, 1);
@@ -305,27 +308,27 @@ export const Dashboard: React.FC = () => {
   // Let's iterate over Targets first as they define the goals.
 
   const getProgress = (areaId: string, blockType: string) => {
-    return blocks.filter(b => b.area_id === areaId && b.block_type === blockType).length;
+    return blocks.filter((b: Block) => b.area_id === areaId && b.block_type === blockType).length;
   };
 
   const getBlocksForTarget = (areaId: string, blockType: string) => {
     return blocks
-      .filter(b => b.area_id === areaId && b.block_type === blockType)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Most recent first
+      .filter((b: Block) => b.area_id === areaId && b.block_type === blockType)
+      .sort((a: Block, b: Block) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Most recent first
   };
 
   // Group targets by Area to show them nicely
-  const targetsByArea = areas.map(area => {
-    const areaTargets = targets.filter(t => t.area_id === area.id);
-    const areaBlocks = blocks.filter(b => b.area_id === area.id);
+  const targetsByArea = areas.map((area: Area) => {
+    const areaTargets = targets.filter((t: MonthlyTarget) => t.area_id === area.id);
+    const areaBlocks = blocks.filter((b: Block) => b.area_id === area.id);
     
     // Calculate stats
-    const totalMinutes = areaBlocks.reduce((acc, b) => acc + b.duration_minutes, 0);
+    const totalMinutes = areaBlocks.reduce((acc: number, b: Block) => acc + b.duration_minutes, 0);
     const totalBlocks = areaBlocks.length;
 
     return {
       area,
-      targets: areaTargets.map(t => {
+      targets: areaTargets.map((t: MonthlyTarget) => {
         // Adapt target count based on view type
         let adaptedTargetCount = t.target_count;
         if (viewType === 'week') {
@@ -354,7 +357,7 @@ export const Dashboard: React.FC = () => {
   });
 
   // Show areas with targets or blocks for all views
-  const activeGroups = targetsByArea.filter(g => g.targets.length > 0 || g.totalBlocks > 0);
+  const activeGroups = targetsByArea.filter((g: typeof targetsByArea[0]) => g.targets.length > 0 || g.totalBlocks > 0);
 
   // Drag and Drop handlers
   const sensors = useSensors(
@@ -368,21 +371,21 @@ export const Dashboard: React.FC = () => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = activeGroups.findIndex((g) => g.area.id === active.id);
-      const newIndex = activeGroups.findIndex((g) => g.area.id === over.id);
+      const oldIndex = activeGroups.findIndex((g: typeof activeGroups[0]) => g.area.id === active.id);
+      const newIndex = activeGroups.findIndex((g: typeof activeGroups[0]) => g.area.id === over.id);
 
       const reorderedGroups = arrayMove(activeGroups, oldIndex, newIndex);
       
       // Update display_order in database
       try {
-        const updates = reorderedGroups.map((group, index) => ({
+        const updates = reorderedGroups.map((group: typeof activeGroups[0], index: number) => ({
           id: group.area.id,
           display_order: index,
         }));
 
         // Update all areas in a batch
         await Promise.all(
-          updates.map((update) =>
+          updates.map((update: { id: string; display_order: number }) =>
             supabase
               .from('areas')
               .update({ display_order: update.display_order })
@@ -448,7 +451,7 @@ export const Dashboard: React.FC = () => {
               <p className="text-gray-500">{formatTime(totalMinutes)}</p>
             </div>
           )}
-          {areaTargets.map(target => {
+          {areaTargets.map((target: typeof areaTargets[0]) => {
             const completedBlocks = (target as any).blocks || [];
             const remainingCount = Math.max(0, target.target_count - target.completed);
             const allBlocks = [
@@ -487,12 +490,12 @@ export const Dashboard: React.FC = () => {
                               : "bg-gray-200 hover:bg-gray-300"
                           )}
                           style={isCompleted ? { backgroundColor: '#87FF6C' } : {}}
-                          onMouseEnter={(e) => {
+                          onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
                             if (isCompleted) {
                               e.currentTarget.style.backgroundColor = '#6EE64D';
                             }
                           }}
-                          onMouseLeave={(e) => {
+                          onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
                             if (isCompleted) {
                               e.currentTarget.style.backgroundColor = '#87FF6C';
                             }
@@ -613,11 +616,11 @@ export const Dashboard: React.FC = () => {
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={activeGroups.map(g => g.area.id)}
+                items={activeGroups.map((g: typeof activeGroups[0]) => g.area.id)}
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-4 overflow-visible">
-                  {activeGroups.map((group) => (
+                  {activeGroups.map((group: typeof activeGroups[0]) => (
                     <SortableAreaCard
                       key={group.area.id}
                       group={group}
@@ -635,8 +638,8 @@ export const Dashboard: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
             <div className="bg-white shadow sm:rounded-lg overflow-hidden">
               <ul className="divide-y divide-gray-200">
-                {blocks.slice(0, 10).map((block) => {
-                  const area = areas.find(a => a.id === block.area_id);
+                {blocks.slice(0, 10).map((block: Block) => {
+                  const area = areas.find((a: Area) => a.id === block.area_id);
                   return (
                     <li key={block.id} className="px-4 py-4 flex items-center justify-between hover:bg-gray-50 group">
                       <div className="flex items-center space-x-3 flex-1">
@@ -711,7 +714,7 @@ export const Dashboard: React.FC = () => {
                 <input
                   type="date"
                   value={editDate}
-                  onChange={(e) => setEditDate(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditDate(e.target.value)}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                   required
                 />
@@ -721,10 +724,10 @@ export const Dashboard: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Area</label>
                 <select
                   value={editAreaId}
-                  onChange={(e) => setEditAreaId(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEditAreaId(e.target.value)}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                 >
-                  {areas.map((area) => (
+                  {areas.map((area: Area) => (
                     <option key={area.id} value={area.id}>
                       {area.name}
                     </option>
@@ -757,7 +760,7 @@ export const Dashboard: React.FC = () => {
                 <input
                   type="number"
                   value={editDuration}
-                  onChange={(e) => setEditDuration(Number(e.target.value))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditDuration(Number(e.target.value))}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                   min="1"
                   required
@@ -768,7 +771,7 @@ export const Dashboard: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
                 <textarea
                   value={editNotes}
-                  onChange={(e) => setEditNotes(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditNotes(e.target.value)}
                   rows={3}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                 />
@@ -815,7 +818,7 @@ export const Dashboard: React.FC = () => {
                 <input
                   type="date"
                   value={logDate}
-                  onChange={(e) => setLogDate(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLogDate(e.target.value)}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                   required
                 />
@@ -825,10 +828,10 @@ export const Dashboard: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Area</label>
                 <select
                   value={logAreaId}
-                  onChange={(e) => setLogAreaId(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setLogAreaId(e.target.value)}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                 >
-                  {areas.map((area) => (
+                  {areas.map((area: Area) => (
                     <option key={area.id} value={area.id}>
                       {area.name}
                     </option>
@@ -861,7 +864,7 @@ export const Dashboard: React.FC = () => {
                 <input
                   type="number"
                   value={logDuration}
-                  onChange={(e) => setLogDuration(Number(e.target.value))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLogDuration(Number(e.target.value))}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                   min="1"
                   required
@@ -872,7 +875,7 @@ export const Dashboard: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
                 <textarea
                   value={logNotes}
-                  onChange={(e) => setLogNotes(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLogNotes(e.target.value)}
                   rows={3}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                 />
