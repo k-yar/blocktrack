@@ -36,8 +36,8 @@ This guide will help you deploy BlockTrack so you can access it on your phone an
 4. **Add Environment Variables**:
    - In the project settings, go to "Environment Variables"
    - Add these two variables:
-     - `VITE_SUPABASE_URL` = `https://byogwalhwiibzmswtvey.supabase.co`
-     - `VITE_SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5b2d3YWxod2lpYnptc3d0dmV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTA1MjcsImV4cCI6MjA4MzE4NjUyN30.R0z3faXLBbMAuErRx61-TBEuO9WirIa8qoGkwJQVCsw`
+     - `VITE_SUPABASE_URL` = ``
+     - `VITE_SUPABASE_ANON_KEY` = ``
    - Make sure to select "Production", "Preview", and "Development" environments
 
 5. **Deploy**:
