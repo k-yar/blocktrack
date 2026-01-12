@@ -35,3 +35,5 @@ export const PRESET_COLORS = [
   '#fee2e2', '#ffedd5', '#fef3c7', '#ecfccb', '#d1fae5', '#cffafe', '#dbeafe', '#e0e7ff', '#ede9fe', '#fae8ff', '#ffe4e6'
 ];
 
+export type ViewType = 'week' | 'month' | 'year' | 'all';
+

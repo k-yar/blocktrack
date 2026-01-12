@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import type { Area, Block, MonthlyTarget, BlockType } from '../types';
+import type { Area, Block, MonthlyTarget, BlockType, ViewType } from '../types';
 import { BLOCK_TYPES } from '../types';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfYear, endOfYear, addWeeks, subWeeks, addYears, subYears } from 'date-fns';
 import { ChevronLeft, ChevronRight, CheckCircle, Clock, Edit2, Trash2, X, PlusCircle, Save, Copy, GripVertical } from 'lucide-react';
@@ -24,7 +24,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-type ViewType = 'week' | 'month' | 'year' | 'all';
+import { DashboardStats } from '../components/DashboardStats';
 
 export const Dashboard: React.FC = () => {
   const [viewType, setViewType] = useState<ViewType>('month'); // Default to month view
@@ -595,9 +595,12 @@ export const Dashboard: React.FC = () => {
       {loading ? (
         <div className="text-center py-12">Loading stats...</div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 overflow-visible">
-          {/* Progress Cards */}
-          <div className="space-y-6 overflow-visible">
+        <>
+          <DashboardStats blocks={blocks} areas={areas} viewType={viewType} currentDate={currentDate} />
+          
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 overflow-visible">
+            {/* Progress Cards */}
+            <div className="space-y-6 overflow-visible">
             <h3 className="text-lg font-medium text-gray-900">
               {viewType === 'month' ? 'Monthly Goals' : 
                viewType === 'week' ? 'Weekly Progress' :
@@ -691,7 +694,8 @@ export const Dashboard: React.FC = () => {
               </ul>
             </div>
           </div>
-        </div>
+          </div>
+        </>
       )}
 
       {/* Edit Block Modal */}
