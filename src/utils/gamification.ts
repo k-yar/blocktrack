@@ -87,12 +87,7 @@ export const calculateStreak = (dates: string[]): number => {
     } else {
       // If we skipped a day (gap > 1 day from previous found), stop
       // Note: Since we already sorted and are iterating, any gap means streak end
-      // But we need to be careful about gaps in the array vs gaps in time
-      const diff = differenceInCalendarDays(expectedDate, date); // expected is older? No, expected is moving back
-      // Actually simpler:
-      // prevDate = date of previous iteration (newer)
-      // currDate = date of current iteration (older)
-      // diff must be 1 day.
+      break;
     }
   }
 

@@ -1,5 +1,5 @@
 import type { Block } from '../types';
-import { format, parseISO, startOfDay, isBefore, isAfter, getHours } from 'date-fns';
+import { parseISO, startOfDay, isAfter, getHours } from 'date-fns';
 
 export interface Achievement {
   id: string;
@@ -59,13 +59,7 @@ export const checkAchievements = (blocks: Block[], options?: AchievementCheckOpt
     return getHours(blockDate) >= 22;
   });
   
-  // Marathon check (6+ hours in one day)
-  const dailyMinutesMap = blocks.reduce((acc, b) => {
-    const date = b.date;
-    acc[date] = (acc[date] || 0) + b.duration_minutes;
-    return acc;
-  }, {} as Record<string, number>);
-  const hasMarathon = Object.values(dailyMinutesMap).some(mins => mins >= 360);
+  // Marathon check (6+ hours in one day) - calculated inline for daily_6h achievement
   
   // Define achievements
   const allAchievements: Omit<Achievement, 'unlocked' | 'unlockedAt'>[] = [
