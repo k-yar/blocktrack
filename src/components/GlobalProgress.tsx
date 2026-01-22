@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Target, CheckCircle2, TrendingUp, ChevronDown, ChevronUp, Layers, Grid3x3 } from 'lucide-react';
 import clsx from 'clsx';
-import type { Block, MonthlyTarget, ViewType, Area, BlockType } from '../types';
+import type { Block, MonthlyTarget, ViewType, Area } from '../types';
 import { BLOCK_TYPES } from '../types';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import { format, startOfWeek, endOfWeek } from 'date-fns';
 
 interface GlobalProgressProps {
   blocks: Block[];

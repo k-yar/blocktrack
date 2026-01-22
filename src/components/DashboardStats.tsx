@@ -14,7 +14,7 @@ import {
   LineChart,
   Line
 } from 'recharts';
-import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, eachMonthOfInterval, startOfMonth, endOfMonth, startOfYear, endOfYear, isSameDay, isSameMonth } from 'date-fns';
+import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, eachMonthOfInterval, startOfMonth, endOfMonth, startOfYear, endOfYear, isSameMonth } from 'date-fns';
 import type { Block, Area, ViewType } from '../types';
 import { BLOCK_TYPES } from '../types';
 

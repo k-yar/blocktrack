@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Trophy, Award, Sparkles, X } from 'lucide-react';
+import React from 'react';
+import { Trophy, Award, X } from 'lucide-react';
 import type { Achievement } from '../utils/achievements';
 import confetti from 'canvas-confetti';
 import clsx from 'clsx';

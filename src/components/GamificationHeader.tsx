@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Flame, Star, Zap } from 'lucide-react';
+import { Trophy, Flame, Zap } from 'lucide-react';
 import clsx from 'clsx';
 import { calculateLevel } from '../utils/gamification';
 import { getLevelTitle, isNearNextLevel } from '../utils/achievements';
