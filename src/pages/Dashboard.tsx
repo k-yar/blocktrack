@@ -6,6 +6,11 @@ import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfYear, 
 import { ChevronLeft, ChevronRight, CheckCircle, Clock, Edit2, Trash2, X, PlusCircle, Save, Copy, GripVertical } from 'lucide-react';
 import clsx from 'clsx';
 import { addMonths, subMonths } from 'date-fns';
+import confetti from 'canvas-confetti';
+import { GamificationHeader } from '../components/GamificationHeader';
+import { calculateStreak, calculateLevel } from '../utils/gamification';
+import { checkAchievements } from '../utils/achievements';
+import { AchievementsPanel, celebrateLevelUp } from '../components/AchievementsPanel';
 import {
   DndContext,
   closestCenter,
@@ -25,6 +30,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 import { DashboardStats } from '../components/DashboardStats';
+import { GlobalProgress } from '../components/GlobalProgress';
 
 export const Dashboard: React.FC = () => {
   const [viewType, setViewType] = useState<ViewType>('month'); // Default to month view
@@ -54,9 +60,54 @@ export const Dashboard: React.FC = () => {
   const [logNotes, setLogNotes] = useState('');
   const [isLogging, setIsLogging] = useState(false);
 
+  // Gamification state
+  const [totalMinutesAllTime, setTotalMinutesAllTime] = useState(0);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [previousLevel, setPreviousLevel] = useState(1);
+  const [achievements, setAchievements] = useState(checkAchievements([]));
+  const [showAchievements, setShowAchievements] = useState(false);
+
   useEffect(() => {
     fetchDashboardData();
   }, [viewType, currentDate]);
+
+  useEffect(() => {
+    fetchGamificationStats();
+  }, []);
+
+  const fetchGamificationStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blocks')
+        .select('*');
+      
+      if (error) throw error;
+
+      if (data) {
+        // Calculate total minutes
+        const total = data.reduce((acc, block) => acc + block.duration_minutes, 0);
+        
+        // Check for level up
+        const newLevel = calculateLevel(total).level;
+        if (newLevel > previousLevel && previousLevel > 1) {
+          celebrateLevelUp(newLevel, previousLevel);
+        }
+        setPreviousLevel(newLevel);
+        setTotalMinutesAllTime(total);
+
+        // Calculate streak
+        const dates = data.map(b => b.date);
+        const streak = calculateStreak(dates);
+        setCurrentStreak(streak);
+        
+        // Check achievements (pass streak for streak-based achievements)
+        const newAchievements = checkAchievements(data, { currentStreak: streak });
+        setAchievements(newAchievements);
+      }
+    } catch (error) {
+      console.error('Error fetching gamification stats:', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -210,6 +261,7 @@ export const Dashboard: React.FC = () => {
       
       // Refresh data
       await fetchDashboardData();
+      await fetchGamificationStats();
       handleEditCancel();
     } catch (error) {
       console.error('Error updating block:', error);
@@ -228,6 +280,8 @@ export const Dashboard: React.FC = () => {
       
       // Refresh data
       await fetchDashboardData();
+      // If we deleted a block, stats might change
+      await fetchGamificationStats();
     } catch (error) {
       console.error('Error deleting block:', error);
       alert('Failed to delete block');
@@ -293,6 +347,15 @@ export const Dashboard: React.FC = () => {
       
       // Refresh data
       await fetchDashboardData();
+      await fetchGamificationStats();
+      
+      // Trigger confetti for block logging
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+
       handleCloseLogModal();
     } catch (error) {
       console.error('Error logging block:', error);
@@ -532,8 +595,34 @@ export const Dashboard: React.FC = () => {
     );
   };
 
+  const unlockedCount = achievements.filter(a => a.unlocked).length;
+
   return (
     <div className="space-y-8">
+      {/* Gamification Header */}
+      <GamificationHeader 
+        totalMinutes={totalMinutesAllTime} 
+        streak={currentStreak}
+        onAchievementsClick={() => setShowAchievements(true)}
+        unlockedAchievementsCount={unlockedCount}
+      />
+      
+      {/* Achievements Panel */}
+      <AchievementsPanel 
+        achievements={achievements}
+        isOpen={showAchievements}
+        onClose={() => setShowAchievements(false)}
+      />
+
+      {/* Global Progress */}
+      <GlobalProgress 
+        blocks={blocks}
+        targets={targets}
+        areas={areas}
+        viewType={viewType}
+        currentDate={currentDate}
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
